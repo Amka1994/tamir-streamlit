@@ -16,8 +16,8 @@ def product_page():
             product_name = st.text_input("Барааны нэр")
             product_code = st.text_input("Барааны код")
             quantity = st.number_input("Тоо ширхэг")
-            price = st.number_input("Үнэ")
             product_category = st.selectbox("Барааны ангилал", ["Гэр ахуйн", "Хувцас", "Цахилгаан бараа", "Бусад"], index=None, placeholder="Төрөл сонгоно уу")
+            price = st.number_input("Үнэ")
 
             submitted = st.form_submit_button("Бүртгэх", use_container_width=True)
 
@@ -52,7 +52,25 @@ def product_page():
             df = pd.DataFrame(
         products,
         columns=["🛒 Барааны нэр", " 🔖 Барааны код", "🔢 Тоо ширхэг", "📂 Ангилал", "💰 Нэгж үнэ"])
-        st.dataframe(df.style.apply(highlight_low_quantity, axis=1), use_container_width=True, hide_index=True)
+        #st.dataframe(df.style.apply(highlight_low_quantity, axis=1), use_container_width=True, hide_index=True)
+
+
+        ########## Ангилалаар хайх ############
+
+        categories = ["Бүгд"] + sorted(df["📂 Ангилал"].unique().tolist())
+
+        selected_category = st.selectbox("Ангилалаар шүүх", categories, index=0)
+
+        if selected_category != "Бүгд":
+            df = df[df["📂 Ангилал"] == selected_category]
+
+        st.dataframe(
+            df.style.apply(highlight_low_quantity, axis=1),
+            use_container_width=True,
+            hide_index=True
+        )
+
+    
             
         
             
