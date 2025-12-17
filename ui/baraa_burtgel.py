@@ -57,12 +57,12 @@ def product_page():
 
         ########## Ангилалаар хайх ############
 
-        categories = ["Бүгд"] + sorted(df["📂 Ангилал"].unique().tolist())
+        categories = sorted(df["📂 Ангилал"].unique().tolist())
 
-        selected_category = st.selectbox("Ангилалаар шүүх", categories, index=0)
+        selected_category = st.multiselect("Ангилалаар шүүх", categories)
 
-        if selected_category != "Бүгд":
-            df = df[df["📂 Ангилал"] == selected_category]
+        if selected_category:
+            df = df[df["📂 Ангилал"].isin(selected_category)]
 
         st.dataframe(
             df.style.apply(highlight_low_quantity, axis=1),
