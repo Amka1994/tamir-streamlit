@@ -19,8 +19,8 @@ def product_page():
         st.caption("Шинэ бараа системд нэмэх")
 
         with st.form("product_form", clear_on_submit=True):
-            product_name = st.text_input("Барааны нэр", placeholder="Жишээ: Samsung Galaxy S24")
-            product_code = st.text_input("Барааны код", placeholder="Жишээ: SAM-S24-001")
+            product_name = st.text_input("Барааны нэр")
+            product_code = st.text_input("Барааны код")
             quantity = st.number_input("Тоо ширхэг", min_value=0, value=1, step=1)
             product_category = st.selectbox(
                 "Барааны ангилал",
