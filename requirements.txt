@@ -1,0 +1,7 @@
+streamlit>=1.32
+SQLAlchemy>=2.0
+pymysql>=1.1
+pandas>=2.2
+python-dotenv>=1.0
+bcrypt>=4.1
+streamlit-option-menu>=0.3.6
