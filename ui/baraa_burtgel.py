@@ -85,7 +85,7 @@ def product_page():
                     if selected_categories:
                         display_df = display_df[display_df["📂 Ангилал"].isin(selected_categories)]
 
-                                # ШИНЭ: Мөр бүрд "Нэмэх ➕" товчтой жагсаалт
+             # ШИНЭ: Мөр бүрд "Нэмэх ➕" товчтой жагсаалт
                 st.markdown("### 📦 Бараа нэмэх боломжтой жагсаалт")
 
                 for _, row in display_df.iterrows():
@@ -107,7 +107,7 @@ def product_page():
                                 "Нэмэх ➕",
                                 key=f"add_{row.name}",
                                 use_container_width=True,
-                                type="primary" if row['🔢 Тоо ширхэг'] < 10 else "secondary"
+                                type="primary" if row['🔢 Тоо ширхэг'] < 5 else "secondary"
                             ):
                                 # df-с id-г авах (display_df-д id байхгүй)
                                 original_row = df.iloc[row.name]
