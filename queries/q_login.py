@@ -1,17 +1,14 @@
-from connection.db import get_db_connection
+from connection.db import engine
+from sqlalchemy import text
 import bcrypt
 
 def login_user(username, password):
-    conn = get_db_connection()
-
     try:
-        with conn.cursor() as cur:
-            # хэрэглэгчийг username-ээр хайх
-            cur.execute(
-                "SELECT id, username, password, role FROM users WHERE username=%s",
-                (username,)
+        with engine.connect() as conn:
+            query =text(
+                "SELECT id, username, password, role FROM users WHERE username = :username LIMIT 1",
             )
-            user = cur.fetchone()
+            user = conn.execute(query, {"username": username}).fetchone()
 
             if not user:
                 return False, "Хэрэглэгч олдсонгүй", None
@@ -21,7 +18,7 @@ def login_user(username, password):
             # password шалгах
             if not bcrypt.checkpw(
                 password.encode("utf-8"),
-                hashed_password.encode("utf-8")
+                hashed_password.encode("utf-8") if isinstance(hashed_password, str) else hashed_password
             ):
                 return False, "Нууц үг буруу байна", None
 
@@ -35,5 +32,4 @@ def login_user(username, password):
     except Exception as e:
         return False, f"Алдаа гарлаа: {e}", None
 
-    finally:
-        conn.close()
+

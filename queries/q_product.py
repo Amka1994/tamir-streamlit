@@ -1,29 +1,34 @@
-from connection.db import get_db_connection
+from connection.db import engine
 from sqlalchemy import text
 
-
+# Бараа нэмэх функц
 def insert_product(name, code, quantity, category, price):
-    conn = get_db_connection()
+   
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO products (name, code, quantity, category, price) VALUES (%s, %s, %s, %s, %s)",
-                (name, code, quantity, category, price)
+        with engine.begin() as conn:
+            query = text(
+                "INSERT INTO products (name, code, quantity, category, price) VALUES (:name, :code, :quantity, :category, :price)"
             )
-            conn.commit()
+
+            conn.execute(query, {
+                "name": name,
+                "code": code,
+                "quantity": quantity,
+                "category": category,
+                "price": price
+            })
             return True, "Бараа амжилттай бүртгэгдлээ"
     except Exception as e:
         return False, f"Алдаа гарлаа: {e}"
-    finally:
-        conn.close()
-
+  
+# Бүх барааг авах функц
 def get_all_products():
-    conn = get_db_connection()
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT name, code, quantity, category, price FROM products")
-            products = cur.fetchall()
-            return products
+        with engine.connect() as conn:
+
+             query = text("SELECT id, name, code, quantity, category, price FROM products")
+             result = conn.execute(query)
+             return result
     except Exception as e:
         print(f"Алдаа гарлаа: {e}")
         return []

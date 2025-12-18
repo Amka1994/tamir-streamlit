@@ -3,9 +3,9 @@ from sqlalchemy import text
 import pandas as pd
 from highlight.highlight import highlight_low_quantity
 from queries.q_product import insert_product, get_all_products
+from components.product_dialogs import add_quantity_dialog
 
-# ---------- КЭШ ----------
-@st.cache_data(ttl=60)  # 60 секунд тутам шинэчлэгдэх боломжтой
+
 def load_products():
     return get_all_products()
 
@@ -48,7 +48,7 @@ def product_page():
                     )
                     if success:
                         st.success(f"✅ Амжилттай бүртгэгдлээ: {product_name} ({product_code})")
-                        load_products.clear()  # Зөвхөн энэ кэшийг цэвэрлэнэ
+                        st.rerun()
                     else:
                         st.error(f"❌ Алдаа гарлаа: {message}")
 
@@ -56,42 +56,83 @@ def product_page():
     with col2:
         st.markdown("🧾 Бүртгэлтэй барааны жагсаалт")
 
-        # Кэшийг ашиглан өгөгдөл авах → хурдан бөгөөд серверт ачаалал бага
         products = load_products()
 
-        if not products or len(products) == 0:
-            st.info("ℹ️ Одоогоор бүртгэлтэй бараа байхгүй байна.")
-            st.stop()  # Цааш код ажиллахгүй, хоосон хуудас үлдэнэ
-
-        # DataFrame үүсгэх
-        df = pd.DataFrame(
-            products,
-            columns=["🛒 Барааны нэр", "🔖 Барааны код", "🔢 Тоо ширхэг", "📂 Ангилал", "💰 Нэгж үнэ"]
-        )
-
-        # Ангиллаар шүүх
-        available_categories = sorted(df["📂 Ангилал"].dropna().unique().tolist())
-        
-        if available_categories:
-            selected_categories = st.multiselect(
-                "📂 Ангилалаар шүүх",
-                options=available_categories,
-                default=[],
-                placeholder="Бүх ангилал"
-            )
-            if selected_categories:
-                df = df[df["📂 Ангилал"].isin(selected_categories)]
+        if not products:
+                st.info("ℹ️ Одоогоор бүртгэлтэй бараа байхгүй байна.")
         else:
-            st.caption("Ангилал байхгүй байна.")
+                # DataFrame үүсгэх (id-тай хамт)
+                df = pd.DataFrame(
+                    products,
+                    columns=["id", "🛒 Барааны нэр", "🔖 Барааны код", "🔢 Тоо ширхэг", "📂 Ангилал", "💰 Нэгж үнэ"]
+                )
 
-        # Өгөгдлийг хүснэгтээр харуулах + бага тоо ширхэгийг онцлох
-        st.dataframe(
-            df.style.apply(highlight_low_quantity, axis=1),
-            use_container_width=True,
-            hide_index=True
-        )
+                # None утгыг 0 болгох
+                df["🔢 Тоо ширхэг"] = pd.to_numeric(df["🔢 Тоо ширхэг"], errors='coerce').fillna(0).astype(int)
+                df["💰 Нэгж үнэ"] = pd.to_numeric(df["💰 Нэгж үнэ"], errors='coerce').fillna(0.0)
 
-        # Нийт тоо, дүнгийн мэдээлэл (нэмэлт боломж)
-        with st.expander("📊 Нэмэлт мэдээлэл"):
-            st.write(f"**Нийт барааны тоо:** {len(df)}")
-            st.write(f"**Нийт үнийн дүн:** {df['💰 Нэгж үнэ'].sum():,.0f} ₮")
+                display_df = df[["🛒 Барааны нэр", "🔖 Барааны код", "🔢 Тоо ширхэг", "📂 Ангилал", "💰 Нэгж үнэ"]]
+
+                # Ангиллаар шүүх
+                available_categories = sorted(display_df["📂 Ангилал"].dropna().unique())
+                if available_categories:
+                    selected_categories = st.multiselect(
+                        "📂 Ангилалаар шүүх",
+                        options=available_categories,
+                        default=[],
+                        placeholder="Бүгдийг харуулах"
+                    )
+                    if selected_categories:
+                        display_df = display_df[display_df["📂 Ангилал"].isin(selected_categories)]
+
+                                # ШИНЭ: Мөр бүрд "Нэмэх ➕" товчтой жагсаалт
+                st.markdown("### 📦 Бараа нэмэх боломжтой жагсаалт")
+
+                for _, row in display_df.iterrows():
+                    with st.container(border=True):
+                        col1, col2, col3 = st.columns([4, 2, 1.5])
+
+                        with col1:
+                            st.subheader(f"{row['🛒 Барааны нэр']} ({row['🔖 Барааны код']})")
+                            st.caption(f"🏷️ Ангилал: **{row['📂 Ангилал']}** | 💰 Нэгж үнэ: **{row['💰 Нэгж үнэ']:,} ₮**")
+
+                        with col2:
+                            st.metric(
+                                label="Нөөцөд байгаа",
+                                value=row['🔢 Тоо ширхэг']
+                            )
+
+                        with col3:
+                            if st.button(
+                                "Нэмэх ➕",
+                                key=f"add_{row.name}",
+                                use_container_width=True,
+                                type="primary" if row['🔢 Тоо ширхэг'] < 10 else "secondary"
+                            ):
+                                # df-с id-г авах (display_df-д id байхгүй)
+                                original_row = df.iloc[row.name]
+                                add_quantity_dialog(
+                                    product_id=original_row["id"],
+                                    product_name=original_row["🛒 Барааны нэр"],
+                                    current_quantity=original_row["🔢 Тоо ширхэг"]
+                                )
+
+                # Доор нэгтгэсэн хүснэгтийг харуулах
+                st.markdown("---")
+                st.dataframe(
+                    display_df.style.apply(highlight_low_quantity, axis=1),
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+                # Нэмэлт статистик
+                with st.container(border=True):
+                    st.markdown("### 📊 Нийт дүн")
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Барааны төрөл", len(display_df))
+                    with col2:
+                        st.metric("Нийт тоо ширхэг", display_df['🔢 Тоо ширхэг'].sum())
+                    with col3:
+                        total_value = (display_df['💰 Нэгж үнэ'] * display_df['🔢 Тоо ширхэг']).sum()
+                        st.metric("Нийт үнийн дүн", f"{total_value:,.0f} ₮")
