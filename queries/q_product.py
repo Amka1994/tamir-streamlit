@@ -34,3 +34,29 @@ def get_all_products():
         return []
     finally:
         conn.close()
+
+
+#history-г авах функц
+def get_product_history(product_id: int = None, limit: int = 100):
+    try:
+        with engine.connect() as conn:
+            query = text("""select
+                ph.changed_at,
+                p.name AS product_name,
+                ph.change_type,
+                ph.quantity_change,
+                ph.previous_quantity,
+                ph.new_quantity,
+                ph.reason,
+                ph.changed_by
+                FROM log_product_history ph
+                join products p on ph.product_id = p.id
+                ORDER BY ph.changed_at DESC
+                LIMIT :limit
+            """)
+            result = conn.execute(query, {"limit": limit})
+            return result.fetchall()
+    except Exception as e:
+        print(f"Алдаа гарлаа: {e}")
+        return []
+   

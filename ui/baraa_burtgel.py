@@ -2,7 +2,7 @@ import streamlit as st
 from sqlalchemy import text
 import pandas as pd
 from highlight.highlight import highlight_low_quantity
-from queries.q_product import insert_product, get_all_products
+from queries.q_product import insert_product, get_all_products, get_product_history
 from components.product_dialogs import add_quantity_dialog
 
 
@@ -136,3 +136,36 @@ def product_page():
                     with col3:
                         total_value = (display_df['💰 Нэгж үнэ'] * display_df['🔢 Тоо ширхэг']).sum()
                         st.metric("Нийт үнийн дүн", f"{total_value:,.0f} ₮")
+
+                #Түүх харуулах expander
+                with st.expander("Бүх барааны хөдөлгөөний түүх (сүүлийн 100)", expanded=False):
+                    history = get_product_history()
+
+                    if not history:
+                        st.info("ℹ️ Одоогоор барааны түүх байхгүй байна.")
+                    else:
+                        history_df = pd.DataFrame(
+                                history,
+                                columns=["Огноо", "Бараа", "Үйлдэл", "Өөрчлөлт", "Өмнөх", "Шинэ", "Шалтгаан", "Хэн"]
+                            )
+
+                            # Үйлдлийг гоё болгох
+                        history_df["Үйлдэл"] = history_df["Үйлдэл"].map({
+                                "ADD": "➕ Нэмсэн",
+                                "REMOVE": "➖ Хассан",
+                                "ADJUST": "🔧 Зассан"
+                            })
+
+                            # Өөрчлөлтийг + эсвэл - тэмдэгтэй харуулах
+                        history_df["Өөрчлөлт"] = history_df["Өөрчлөлт"].apply(
+                                lambda x: f"+{x}" if x > 0 else str(x)
+                            )
+
+                            # Огноог гоё форматлах
+                        history_df["Огноо"] = pd.to_datetime(history_df["Огноо"]).dt.strftime("%Y-%m-%d %H:%M")
+
+                        st.dataframe(
+                                history_df,
+                                use_container_width=True,
+                                hide_index=True
+                            )
