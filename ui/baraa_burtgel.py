@@ -3,7 +3,7 @@ from sqlalchemy import text
 import pandas as pd
 from highlight.highlight import highlight_low_quantity
 from queries.q_product import insert_product, get_all_products, get_product_history
-from components.product_dialogs import add_quantity_dialog
+from components.product_dialogs import add_quantity_dialog, remove_quantity_dialog
 
 
 def load_products():
@@ -112,6 +112,18 @@ def product_page():
                                 # df-с id-г авах (display_df-д id байхгүй)
                                 original_row = df.iloc[row.name]
                                 add_quantity_dialog(
+                                    product_id=original_row["id"],
+                                    product_name=original_row["🛒 Барааны нэр"],
+                                    current_quantity=original_row["🔢 Тоо ширхэг"]
+                                )
+                            if st.button(
+                                "Хасах ➖",
+                                key=f"remove_{row.name}",
+                                use_container_width=True,
+                                type="primary" if row['🔢 Тоо ширхэг'] < 0 else "secondary"
+                            ):
+                                original_row = df.iloc[row.name]
+                                remove_quantity_dialog(
                                     product_id=original_row["id"],
                                     product_name=original_row["🛒 Барааны нэр"],
                                     current_quantity=original_row["🔢 Тоо ширхэг"]
