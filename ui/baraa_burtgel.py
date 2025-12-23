@@ -151,13 +151,13 @@ def product_page():
                                     current_quantity=original_row["🔢 Тоо ширхэг"]
                                 )
 
-                # Доор нэгтгэсэн хүснэгтийг харуулах
-                st.markdown("---")
-                st.dataframe(
-                    display_df.style.apply(highlight_low_quantity, axis=1),
-                    use_container_width=True,
-                    hide_index=True
-                )
+                # # Доор нэгтгэсэн хүснэгтийг харуулах
+                # st.markdown("---")
+                # st.dataframe(
+                #     display_df.style.apply(highlight_low_quantity, axis=1),
+                #     use_container_width=True,
+                #     hide_index=True
+                # )
 
                 # Нэмэлт статистик
                 with st.container(border=True):
