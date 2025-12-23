@@ -91,11 +91,33 @@ def product_page():
                 for _, row in display_df.iterrows():
                     with st.container(border=True):
                         col1, col2, col3 = st.columns([4, 2, 1.5])
+                        
+                        original_row = df.iloc[row.name]
 
                         with col1:
-                            st.subheader(f"{row['🛒 Барааны нэр']} ({row['🔖 Барааны код']})")
-                            st.caption(f"🏷️ Ангилал: **{row['📂 Ангилал']}** | 💰 Нэгж үнэ: **{row['💰 Нэгж үнэ']:,} ₮**")
+                            # Барааны нэрийг button болгох (дарвал түүх нээгдэнэ)
+                            if st.button(f"{row['🛒 Барааны нэр']} ({row['🔖 Барааны код']})", key=f"detail_{row.name}", use_container_width=True):
+                                # Тухайн барааны түүхийг харуулах expander
+                                with st.expander(f"{row['🛒 Барааны нэр']} – Хөдөлгөөний түүх", expanded=True):
+                                        history = get_product_history(product_id=original_row["id"])
 
+                                        if not history:
+                                            st.info("Энэ барааны хөдөлгөөн байхгүй байна.")
+                                        else:
+                                            history_df = pd.DataFrame(
+                                                history,
+                                                columns=["🕒 Огноо", "🔄 Үйлдэл", "🔢 Өөрчлөлт", "⬅️ Өмнөх", "➡️ Шинэ", "📝 Шалтгаан", "👤 Хэн"]
+                                            )
+                                            history_df["🔄 Үйлдэл"] = history_df["🔄 Үйлдэл"].map({
+                                                "ADD": "➕ Нэмсэн",
+                                                "REMOVE": "➖ Хассан",
+                                                "ADJUST": "🔧 Зассан"
+                                            })
+                                            history_df["🔢 Өөрчлөлт"] = history_df["🔢 Өөрчлөлт"].apply(lambda x: f"+{x}" if x > 0 else str(x))
+                                            history_df["🕒 Огноо"] = pd.to_datetime(history_df["🕒 Огноо"]).dt.strftime("%Y-%m-%d %H:%M")
+                                            st.dataframe(history_df, use_container_width=True, hide_index=True)
+
+                                st.caption(f"🏷️ Ангилал: **{row['📂 Ангилал']}** | 💰 Үнэ: **{row['💰 Нэгж үнэ']:,} ₮**")
                         with col2:
                             st.metric(
                                 label="Нөөцөд байгаа",
