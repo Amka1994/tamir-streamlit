@@ -2,18 +2,17 @@ from connection.db import engine
 from sqlalchemy import text
 
 # Бараа нэмэх функц
-def insert_product(name, code, quantity, category, price):
+def insert_product(name, code, category, price):
    
     try:
         with engine.begin() as conn:
             query = text(
-                "INSERT INTO products (name, code, quantity, category, price) VALUES (:name, :code, :quantity, :category, :price)"
+                "INSERT INTO products (name, code, category, price) VALUES (:name, :code, :category, :price)"
             )
 
             conn.execute(query, {
                 "name": name,
                 "code": code,
-                "quantity": quantity,
                 "category": category,
                 "price": price
             })
