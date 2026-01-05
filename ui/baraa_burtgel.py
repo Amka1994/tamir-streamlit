@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from highlight.highlight import highlight_low_quantity
 from queries.q_product import insert_product, get_all_products, get_product_history
 from components.product_dialogs import add_quantity_dialog, remove_quantity_dialog
 
@@ -84,7 +83,7 @@ def product_page():
                     else:
                         # Зөвхөн таарсан бараануудыг харуулах
                         for _, row in matched.iterrows():
-                            with st.container(border=True):
+                            with st.container(border=True): 
                                 col_info, col_action = st.columns([3, 2])
 
                                 with col_info:
@@ -176,7 +175,7 @@ def product_page():
         # DataFrame болгох
         history_df = pd.DataFrame(
             history,
-            columns=["changed_at", "product_name", "change_type", "quantity_change", "previous_quantity", "new_quantity", "reason", "changed_by"]
+            columns=["changed_at", "product_name", "change_type", "quantity_change", "previous_quantity", "new_quantity", "reason", "changed_by", "category"]
         )
         history_df["changed_at"] = pd.to_datetime(history_df["changed_at"])
 
@@ -185,17 +184,30 @@ def product_page():
         max_date = history_df["changed_at"].max().date()
 
         # Огнооны шүүлт
-        col_from, col_to = st.columns(2)
+        col_from, col_to, col_fil = st.columns(3)
         with col_from:
             start_date = st.date_input("Эхлэх огноо", value=min_date, min_value=min_date, max_value=max_date)
         with col_to:
             end_date = st.date_input("Дуусах огноо", value=max_date, min_value=min_date, max_value=max_date)
+        with col_fil:
+            available_categories = sorted(df["category"].dropna().unique())
+            selected_categories = st.multiselect(
+                    "📂 Ангилалаар шүүх",
+                    options=available_categories,
+                    default=[],
+                    placeholder="Бүгдийг харуулах", 
+                    key="category_filter_tab2"
+                )
 
         # Шүүх
         filtered_df = history_df[
             (history_df["changed_at"].dt.date >= start_date) &
             (history_df["changed_at"].dt.date <= end_date)
         ]
+        if selected_categories:
+            filtered_df = filtered_df[
+                filtered_df["category"].isin(selected_categories)
+    ]
 
         if filtered_df.empty:
             st.info(f"{start_date} - {end_date} хооронд хөдөлгөөн байхгүй байна.")
@@ -225,7 +237,7 @@ def product_page():
             
 
             st.dataframe(
-                display_history[["changed_at", "product_name", "change_type", "quantity_change", "previous_quantity", "new_quantity", "reason", "changed_by"]].rename(columns={
+                display_history[["changed_at", "product_name", "change_type", "quantity_change", "previous_quantity", "new_quantity", "reason", "changed_by", "category"]].rename(columns={
                     "changed_at": "🕒 Огноо",
                     "product_name": "🛒 Бараа",
                     "change_type": "🔄 Үйлдэл",
@@ -233,7 +245,8 @@ def product_page():
                     "previous_quantity": "⬅️ Өмнөх",
                     "new_quantity": "➡️ Шинэ",
                     "reason": "📝 Шалтгаан",
-                    "changed_by": "👤 Хэн"
+                    "changed_by": "👤 Хэн",
+                    "category": "📂 Ангилал",
                 }),
                 use_container_width=True,
                 hide_index=True

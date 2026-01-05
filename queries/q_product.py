@@ -49,7 +49,8 @@ def get_product_history(product_id: int = None, limit: int = 100):
                     ph.previous_quantity,
                     ph.new_quantity,
                     ph.reason,
-                    ph.changed_by
+                    ph.changed_by,
+                    p.category
                     FROM log_product_history ph
                     join products p on ph.product_id = p.id
                     ORDER BY ph.changed_at DESC
@@ -60,7 +61,7 @@ def get_product_history(product_id: int = None, limit: int = 100):
                 # Тухайн барааны түүх
                 query = text("""SELECT ph.changed_at, ph.change_type,
                            ph.quantity_change, ph.previous_quantity, ph.new_quantity,
-                           ph.reason, ph.changed_by
+                           ph.reason, ph.changed_by, ph.category
                             FROM log_product_history ph
                             WHERE ph.product_id = :pid
                             ORDER BY ph.changed_at DESC

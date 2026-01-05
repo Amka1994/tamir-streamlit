@@ -2,6 +2,7 @@ import streamlit as st
 from ui.login import login_page
 from ui.sign_up import sign_up_user
 from ui.baraa_burtgel import product_page
+from ui.baraa_zahialga import product_order
 from streamlit_option_menu import option_menu
 
 
@@ -59,8 +60,10 @@ else:
         )
     if page == "Бараа бүртгэл":
         product_page()
+    
+    if page == "Захиалга":
+        product_order()
         
-
     if st.sidebar.button("Log out"):
         st.session_state.clear()
         st.rerun()
