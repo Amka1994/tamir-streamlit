@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from queries.q_product import load_products
+
 
 
 def init_cart():
