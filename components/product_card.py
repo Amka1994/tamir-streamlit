@@ -1,14 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-
-
 def init_cart():
-    
-    # Сагсыг list болгож хадгална
     if "cart" not in st.session_state:
         st.session_state.cart = []
-
 
 def add_to_cart(product, quantity):
     """product = (id, name, code, quantity, category, price)"""
@@ -16,7 +11,7 @@ def add_to_cart(product, quantity):
         if item["product_id"] == product[0]:
             item["quantity"] += quantity
             break
-    else:  # давхардсан бараа олдоогүй бол шинэ бараа нэмнэ
+    else:
         st.session_state.cart.append({
             "product_id": product[0],
             "name": product[1],
@@ -24,14 +19,7 @@ def add_to_cart(product, quantity):
             "quantity": quantity
         })
 
-
-def remove_from_cart(product_id):
-    st.session_state.cart = [
-        item for item in st.session_state.cart
-        if item["product_id"] != product_id
-    ]
-
-
+# Энэ функцийг шинэчиллээ
 def render_cart():
     st.markdown("### 🧾 Сагс")
 
@@ -39,21 +27,37 @@ def render_cart():
         st.info("Сагс хоосон байна")
         return 0
 
+    # 1. Сагсны өгөгдлийг DataFrame болгох
     df = pd.DataFrame(st.session_state.cart)
-    df["subtotal"] = df["price"] * df["quantity"]
 
-    st.dataframe(
-        df[["name", "quantity", "price", "subtotal"]].rename(columns={
-            "name": "🛒 Бараа",
-            "quantity": "🔢 Тоо",
-            "price": "💰 Үнэ",
-            "subtotal": "💵 Дүн"
-        }),
+    # 2. Data Editor ашиглан засварлах боломж олгох
+    # num_rows="dynamic" гэснээр хэрэглэгч мөр устгах боломжтой болно
+    edited_df = st.data_editor(
+        df,
+        column_config={
+            "product_id": None,  # ID-г хэрэглэгчид харуулахгүй нуух
+            "name": st.column_config.Column("🛒 Бараа", disabled=True), # Нэрийг засах боломжгүй
+            "price": st.column_config.NumberColumn("💰 Үнэ", format="%d ₮", disabled=True),
+            "quantity": st.column_config.NumberColumn("🔢 Тоо", min_value=1, step=1, required=True),
+        },
+        num_rows="dynamic", # Мөр нэмэх/устгах боломжтой болгох
+        use_container_width=True,
         hide_index=True,
-        use_container_width=True
+        key="cart_editor"
     )
 
-    total = df["subtotal"].sum()
+    # 3. Өөрчлөлтийг session_state-д буцааж хадгалах
+    # Хэрэглэгч тоог өөрчилсөн эсвэл мөр устгасан бол:
+    if len(edited_df) != len(df) or not edited_df.equals(df):
+        st.session_state.cart = edited_df.to_dict('records')
+        st.rerun()
+
+    # 4. Нийт дүнг тооцоолох
+    if not edited_df.empty:
+        total = (edited_df["price"] * edited_df["quantity"]).sum()
+    else:
+        total = 0
+        
     st.metric("Нийт дүн", f"{total:,.0f} ₮")
 
     return total
