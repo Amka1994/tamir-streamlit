@@ -231,7 +231,8 @@ def product_page():
             display_history["change_type"] = display_history["change_type"].map({
                 "ADD": "Нэмсэн",
                 "REMOVE": "Хассан",
-                "ADJUST": "Зассан"
+                "ADJUST": "Зассан",
+                "PENDING": "Pending"
             })
 
             
