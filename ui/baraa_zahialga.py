@@ -54,41 +54,44 @@ def product_order():
             # Хоёр утсыг нэгтгэх (хэрэв 2 дахь нь байвал)
             full_phone = f"{phone1} / {phone2}" if phone2 else phone1
 
-        # --- 2. Бараа сонгох (Нэг мөрөнд) ---
-        st.write("##")
-        products = get_all_products()
-        product_map = {f"{p[1]} ({p[2]}) - {p[5]:,.0f}₮": p for p in products}
+        coladd, collist = st.columns([1, 1])
 
-        with st.container(border=True):
-            st.caption("📦 Бараа нэмэх")
-            col_prod, col_qty, col_add = st.columns([3, 1, 1])
-            with col_prod:
-                selected_label = st.selectbox("Бараа", options=list(product_map.keys()), label_visibility="collapsed", index=None, placeholder="Бараа сонгох...")
-            with col_qty:
-                quantity = st.number_input("Тоо", min_value=1, value=1, label_visibility="collapsed")
-            with col_add:
-                if st.button("Сагслах", use_container_width=True, type="secondary"):
-                    if selected_label:
-                        add_to_cart(product_map[selected_label], quantity)
-                        st.toast(f"Нэмэгдлээ: {product_map[selected_label][1]}", icon="✅")
-                    else:
-                        st.error("Бараа сонгоно уу!")
+        with coladd:
+            # --- 2. Бараа сонгох (Нэг мөрөнд) ---
+            st.write("##")
+            products = get_all_products()
+            product_map = {f"{p[1]} ({p[2]}) - {p[5]:,.0f}₮": p for p in products}
 
-        # --- 3. Сагс (БАЙНГА ХАРАГДАНА) ---
-        st.write("##")
-        # Сагсны хүснэгт энд байна. st.data_editor ашигласан render_cart()
-        total_amount = render_cart() 
+            with st.container(border=True):
+                st.caption("📦 Бараа нэмэх")
+                col_prod, col_qty, col_add = st.columns([3, 1, 1])
+                with col_prod:
+                    selected_label = st.selectbox("Бараа", options=list(product_map.keys()), label_visibility="collapsed", index=None, placeholder="Бараа сонгох...")
+                with col_qty:
+                    quantity = st.number_input("Тоо", min_value=1, value=1, label_visibility="collapsed")
+                with col_add:
+                    if st.button("Сагслах", use_container_width=True, type="secondary"):
+                        if selected_label:
+                            add_to_cart(product_map[selected_label], quantity)
+                            st.toast(f"Нэмэгдлээ: {product_map[selected_label][1]}", icon="✅")
+                        else:
+                            st.error("Бараа сонгоно уу!")
+        with collist:
+            # --- 3. Сагс (БАЙНГА ХАРАГДАНА) ---
+            # st.caption("🛒 Таны сагс")
+            # Сагсны хүснэгт энд байна. st.data_editor ашигласан render_cart()
+            total_amount = render_cart() 
 
-        # --- 4. Захиалга дуусгах товч ---
-        if total_amount > 0:
-            st.divider()
-            col_space, col_confirm = st.columns([3, 1])
-            with col_confirm:
-                if st.button("🚀 Захиалга батлах", type="primary", use_container_width=True):
-                    if not customer_name or not phone1:
-                        st.error("Хэрэглэгчийн мэдээллийг бүрэн бөглөнө үү!")
-                    else:
-                        confirm_order_dialog(customer_name, full_phone, customer_location, total_amount)
+            # --- 4. Захиалга дуусгах товч ---
+            if total_amount > 0:
+                st.divider()
+                col_space, col_confirm = st.columns([3, 1])
+                with col_confirm:
+                    if st.button("🚀 Захиалга батлах", type="primary", use_container_width=True):
+                        if not customer_name or not phone1:
+                            st.error("Хэрэглэгчийн мэдээллийг бүрэн бөглөнө үү!")
+                        else:
+                            confirm_order_dialog(customer_name, full_phone, customer_location, total_amount)
         
     with tab2:
         st.markdown("### 📋 Захиалгын жагсаалт")

@@ -8,6 +8,13 @@ def load_products():
     return get_all_products()
 
 
+def reset_form(): 
+    st.session_state["p_name"] = "" 
+    st.session_state["p_code"] = "" 
+    st.session_state["p_category"] = None 
+    st.session_state["p_price"] = 0.0
+  
+
 def product_page():
     st.markdown("# 📦 Барааны удирдлага")
 
@@ -16,6 +23,7 @@ def product_page():
 
     ########## ТАБ 1: Бараа үүсгэх ##########
     with tab1:
+
         col_form, col_income = st.columns([1, 1], gap="large")
 
         # Зүүн тал: Шинэ бараа бүртгэх
@@ -23,18 +31,23 @@ def product_page():
             st.markdown("### Шинэ бараа үүсгэх")
             st.caption("Системд шинэ бараа үүсгэх")
 
-            with st.form("product_form", clear_on_submit=True):
-                product_name = st.text_input("Барааны нэр", placeholder="Жишээ: Samsung Galaxy S24")
-                product_code = st.text_input("Барааны код", placeholder="Жишээ: SAM-S24-001")
+            if st.query_params.get("clear")=="true":
+                reset_form()
+                # URL-аас параметрийг арилгах
+                st.query_params.clear()
+
+            with st.form("product_form"):
+                product_name = st.text_input("Барааны нэр", value="", placeholder="Жишээ: Samsung Galaxy S24", key="p_name")
+                product_code = st.text_input("Барааны код", value="", placeholder="Жишээ: SAM-S24-001", key="p_code")
                 product_category = st.selectbox(
                     "Барааны ангилал",
                     options=["Гэр ахуйн", "Хувцас", "Цахилгаан бараа", "Бусад"],
                     index=None,
-                    placeholder="Ангилал сонгоно уу"
+                    placeholder="Ангилал сонгоно уу", key="p_category"
                 )
-                price = st.number_input("Нэгж үнэ (₮)", min_value=0.0, value=0.0, step=1000.0, format="%.2f")
+                price = st.number_input("Нэгж үнэ (₮)", min_value=0.0, step=1000.0, format="%.2f", key="p_price")
 
-                submitted = st.form_submit_button("Бүртгэх", use_container_width=True, type="primary")
+                submitted = st.form_submit_button("Бүртгэх", use_container_width=False, type="primary")
 
                 # ЭНД if submitted: дотор байх ёстой!
                 if submitted:
@@ -47,11 +60,11 @@ def product_page():
                             product_category,
                             float(price)
                         )
-                        if success:
+                        if success: 
                             st.success(f"✅ {message}")
+                            st.query_params["clear"] = "true"  # Формаа цэвэрлэх дохио илгээх
                             st.rerun()
-                        else:
-                            st.error(f"❌ {message}")
+                        else: st.error(f"❌ {message}")
 
         # Баруун тал: Татан авалт
         with col_income:

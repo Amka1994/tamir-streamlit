@@ -21,7 +21,8 @@ def add_to_cart(product, quantity):
 
 # Энэ функцийг шинэчиллээ
 def render_cart():
-    st.markdown("### 🧾 Сагс")
+    # st.markdown("🛒 Таны сагс")
+    st.caption("🛒 сонгосон бараа")
 
     if not st.session_state.cart:
         st.info("Сагс хоосон байна")
