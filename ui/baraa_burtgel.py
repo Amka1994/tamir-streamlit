@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
-from queries.q_product import insert_product, get_all_products, get_product_history
+
 from components.product_dialogs import add_quantity_dialog, remove_quantity_dialog
+from config import PRODUCT_CATEGORIES
+from queries.q_product import get_all_products, get_product_history, insert_product
 
 
 def load_products():
@@ -41,9 +43,10 @@ def product_page():
                 product_code = st.text_input("Барааны код", value="", placeholder="Жишээ: SAM-S24-001", key="p_code")
                 product_category = st.selectbox(
                     "Барааны ангилал",
-                    options=["Гэр ахуйн", "Хувцас", "Цахилгаан бараа", "Бусад"],
+                    options=PRODUCT_CATEGORIES,
                     index=None,
-                    placeholder="Ангилал сонгоно уу", key="p_category"
+                    placeholder="Ангилал сонгоно уу",
+                    key="p_category",
                 )
                 price = st.number_input("Нэгж үнэ (₮)", min_value=0.0, step=1000.0, format="%.2f", key="p_price")
 
@@ -203,13 +206,14 @@ def product_page():
         with col_to:
             end_date = st.date_input("Дуусах огноо", value=max_date, min_value=min_date, max_value=max_date)
         with col_fil:
-            available_categories = sorted(df["category"].dropna().unique())
+            # Ангиллыг түүхээс авна (df нь tab2-т байгаа, tab3-т хандах боломжгүй)
+            available_categories = sorted(history_df["category"].dropna().unique())
             selected_categories = st.multiselect(
                     "📂 Ангилалаар шүүх",
                     options=available_categories,
                     default=[],
                     placeholder="Бүгдийг харуулах", 
-                    key="category_filter_tab2"
+                    key="category_filter_tab3"
                 )
 
         # Шүүх
@@ -220,7 +224,7 @@ def product_page():
         if selected_categories:
             filtered_df = filtered_df[
                 filtered_df["category"].isin(selected_categories)
-    ]
+            ]
 
         if filtered_df.empty:
             st.info(f"{start_date} - {end_date} хооронд хөдөлгөөн байхгүй байна.")

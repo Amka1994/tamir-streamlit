@@ -1,8 +1,13 @@
-from connection.db import engine
-from sqlalchemy import text
+import logging
 import bcrypt
+from sqlalchemy import text
 
-def login_user(username, password):
+from connection.db import engine
+
+logger = logging.getLogger(__name__)
+
+
+def login_user(username: str, password: str) -> tuple[bool, str, dict | None]:
     try:
         with engine.connect() as conn:
             query =text(
@@ -30,6 +35,7 @@ def login_user(username, password):
             }
 
     except Exception as e:
+        logger.exception("login_user алдаа: %s", e)
         return False, f"Алдаа гарлаа: {e}", None
 
 

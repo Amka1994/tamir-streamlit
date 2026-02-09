@@ -1,42 +1,13 @@
 import streamlit as st
-from connection.db import engine
-from queries.q_product import get_all_products
-from components.product_card import (init_cart, add_to_cart, render_cart)
-from queries.q_order import save_order_complete
-from queries.order_list import get_all_orders
 
-# Эцсийн баталгаажуулалт хийх Dialog
-# Эцсийн баталгаажуулалт хийх Dialog
-@st.dialog("🚀 Захиалга баталгаажуулах")
-def confirm_order_dialog(name, phone, address, total):
-    st.warning("Та захиалгыг системд хадгалахдаа итгэлтэй байна уу?")
-    st.write(f"**👤 Хэрэглэгч:** {name}")
-    st.write(f"**📞 Утас:** {phone}")
-    st.write(f"**📍 Хаяг:** {address}")
-    st.write(f"**💰 Нийт дүн:** {total:,.0f} ₮")
-    
-    st.divider()
-    if st.button("✅ Тийм, хадгалах", type="primary", use_container_width=True):
-        # --- ЭНД DATABASE-Д ХАДГАЛАХ ХЭСЭГ ---
-        customer_data = {
-            'name': name,
-            'phone': phone,
-            'address': address
-        }
-        
-        # Сагсанд байгаа өгөгдөл: st.session_state.cart
-        success, result = save_order_complete(engine, customer_data, st.session_state.cart, total)
-        
-        if success:
-            st.success(f"Захиалга амжилттай хадгалагдлаа! (ID: {result})")
-            st.balloons()
-            st.session_state.cart = [] # Сагс цэвэрлэх
-            st.rerun()
-        else:
-            st.error(f"Хадгалахад алдаа гарлаа: {result}")
+from components.product_card import add_to_cart, init_cart, render_cart
+from components.order_dialogs import confirm_order_dialog
+from queries.order_list import get_all_orders
+from queries.q_product import get_all_products
+
 
 def product_order():
-    st.markdown("### 🛒 Бараа захиалах")
+    st.markdown("# 🛒 Бараа захиалга авах")
     # ТАБҮҮД
     tab1, tab2 = st.tabs(["📦 Бараа захиалага", "🧾 Захиалгын жагсаалт"])
     with tab1:
@@ -45,11 +16,24 @@ def product_order():
         # --- 1. Хэрэглэгчийн мэдээлэл (Нэг мөрөнд) ---
         with st.container(border=True):
             st.caption("👤 Хэрэглэгчийн мэдээлэл")
-            c1, c2, c3, c4 = st.columns([1, 1, 1, 1])
+            c1, c2, c3 = st.columns([1, 1, 1])
             customer_name = c1.text_input("Нэр", placeholder="Нэр", label_visibility="collapsed")
             phone1 = c2.text_input("Утас1", placeholder="Утасны дугаар", label_visibility="collapsed")
             phone2 = c3.text_input("Утас2", placeholder="Нэмэлт дугаар", label_visibility="collapsed")
-            customer_location = c4.text_input("📍 Хаяг", placeholder="Хүргэлтийн хаяг", label_visibility="collapsed")
+            customer_location = st.text_input("📍 Хаяг", placeholder="Хүргэлтийн хаяг", label_visibility="collapsed")
+           
+
+            # --- ШИНЭ: Дуудлагын төлөв сонгох ---
+            st.write("📞 Дуудлагын төлөв:")
+            call_status = st.pills(
+                "Төлөв",
+                options=["Холбогдсон", "Утас аваагүй", "Холбогдох боломжгүй", "Дараа залгах"],
+                default="Холбогдсон",
+                label_visibility="collapsed"
+            )
+            
+            call_info = st.text_input("Тэмдэглэл", placeholder="Нэмэлт тайлбар (Жишээ нь: 14 цагт залгаарай гэв)", label_visibility="collapsed")
+            
 
             # Хоёр утсыг нэгтгэх (хэрэв 2 дахь нь байвал)
             full_phone = f"{phone1} / {phone2}" if phone2 else phone1
@@ -95,7 +79,7 @@ def product_order():
         
     with tab2:
         st.markdown("### 📋 Захиалгын жагсаалт")
-        orders_df = get_all_orders(engine)
+        orders_df = get_all_orders()
 
         if not orders_df.empty:
         # 2. Хайлтын хэсэг (Сонголттой)

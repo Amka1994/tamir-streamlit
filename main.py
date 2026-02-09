@@ -1,23 +1,29 @@
 import streamlit as st
-from ui.login import login_page
-from ui.sign_up import sign_up_user
-from ui.baraa_burtgel import product_page
-from ui.baraa_zahialga import product_order
 from streamlit_option_menu import option_menu
 
+from config import (
+    MENU_STYLES,
+    NAV_PAGES,
+    PAGE_ICON,
+    PAGE_LAYOUT,
+    PAGE_TITLE,
+    SIDEBAR_STATE,
+    init_session_state,
+)
+from ui.baraa_burtgel import product_page
+from ui.baraa_zahialga import product_order
+from ui.login import login_page
+from ui.sign_up import sign_up_user
 
 st.set_page_config(
-    page_title="Inventory Management System",
-    page_icon="📦",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title=PAGE_TITLE,
+    page_icon=PAGE_ICON,
+    layout=PAGE_LAYOUT,
+    initial_sidebar_state=SIDEBAR_STATE,
 )
-# ---------------- SESSION INIT ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
 
-if "show_signup" not in st.session_state:
-    st.session_state.show_signup = False
+# ---------------- SESSION INIT ----------------
+init_session_state()
 
 # ---------------- BEFORE LOGIN ----------------
 if not st.session_state.logged_in:
@@ -39,30 +45,16 @@ if not st.session_state.logged_in:
 else:
     st.sidebar.success(f"Нэвтэрсэн: {st.session_state.user['username']}")
     with st.sidebar:
-        page = option_menu(
-            "Welcome",
-            ["Бараа бүртгэл", "Захиалга", "Хүргэлт"],
+        page = option_menu("Welcome", NAV_PAGES, styles=MENU_STYLES)
 
-            styles={
-                "nav-link-selected": {"background-color": "#04AA6D"},
-                "icon": {"color": "black", "font-size": "18px"},
-                "nav-link": {
-                            "font-size": "14px",  # Текстийн хэмжээг багасгасан
-                            "text-align": "left",
-                            "margin": "0px",
-                            "--hover-color": "#e0e0e0"  # Hover үед зөөлөн саарал өнгө
-                        },
-                        "nav-link-selected": {
-                            "background-color": "#219ebc",  # Ногоон өнгө
-                            "color": "white"
-                        }
-            }
-        )
-    if page == "Бараа бүртгэл":
+    if page == NAV_PAGES[0]:  # Бараа бүртгэл
         product_page()
     
-    if page == "Захиалга":
+    if page == NAV_PAGES[1]:  # Захиалга
         product_order()
+
+    if page == NAV_PAGES[2]:  # Хүргэлт
+        st.info("🚚 Хүргэлтийн хуудас хөгжүүлэгдэж байна...")
         
     if st.sidebar.button("Log out"):
         st.session_state.clear()

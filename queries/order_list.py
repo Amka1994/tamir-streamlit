@@ -1,10 +1,13 @@
-from connection.db import engine
-from sqlalchemy import text
+import logging
 import pandas as pd
+from sqlalchemy import text
+
+from connection.db import engine
+
+logger = logging.getLogger(__name__)
 
 
-
-def get_all_orders(engine):
+def get_all_orders() -> "pd.DataFrame":
     ### Бүх захиалгын жагсаалт авах функц
 
     query = text(""" 
@@ -31,5 +34,5 @@ ORDER BY o.id DESC
             df = pd.read_sql(query, conn)
         return df
     except Exception as e:
-            print(f"Error fetching orders: {e}")
-            return pd.DataFrame() # Алдаа гарвал хоосон хүснэгт буцаана
+        logger.exception("get_all_orders алдаа: %s", e)
+        return pd.DataFrame()

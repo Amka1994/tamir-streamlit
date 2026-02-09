@@ -1,8 +1,13 @@
-from connection.db import engine
-from sqlalchemy import text
+import logging
 import bcrypt
+from sqlalchemy import text
 
-def add_user_to_db(username, password):
+from connection.db import engine
+
+logger = logging.getLogger(__name__)
+
+
+def add_user_to_db(username: str, password: str) -> tuple[bool, str]:
     try:
         with engine.begin() as conn:
             check_query = text(
@@ -30,4 +35,5 @@ def add_user_to_db(username, password):
             return True, "Хэрэглэгч амжилттай нэмэгдлээ"
 
     except Exception as e:
+        logger.exception("add_user_to_db алдаа: %s", e)
         return False, str(e)

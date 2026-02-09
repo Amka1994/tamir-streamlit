@@ -8,7 +8,7 @@ from urllib.parse import quote_plus
 
 try:
     db_secrets = st.secrets["database"]
-except (FileExistsError, KeyError):
+except (KeyError, Exception):
     st.warning("secrets.toml олдсонгүй. Локал тохиргоо ашиглаж байна.")
     db_secrets = {
         "host": "localhost",

@@ -1,13 +1,15 @@
+import logging
 from sqlalchemy import text
 
+from connection.db import engine
+
+logger = logging.getLogger(__name__)
 
 
-def save_order_complete(engine, customer_data, card_itmes, total_amount):
-
+def save_order_complete(customer_data: dict, cart_items: list, total_amount: float) -> tuple[bool, str | int]:
     """
-    engine: sqlalchemy engine object
     customer_data: dict {'name': '...', 'phone': '...', 'address': '...'}
-    card_itmes: list of tuples [{'product_id': 1, quantity': 2, price': 10000}, ...]
+    cart_items: list [{'product_id': 1, 'quantity': 2, 'price': 10000}, ...]
     total_amount: float Нийт дүн
     """
     try:
@@ -51,7 +53,7 @@ def save_order_complete(engine, customer_data, card_itmes, total_amount):
             #log бичих
             ins_history = text(""" INSERT INTO log_product_history(product_id, quantity_change, change_type, reason ) VALUES (:product_id, :quantity_change, :change_type, :reason) """)
 
-            for item in card_itmes:
+            for item in cart_items:
                 # Захиалгын барааг нэмэх
                 conn.execute(ins_item, {
                     "order_id": order_id,   # захиалгын ID
@@ -73,10 +75,9 @@ def save_order_complete(engine, customer_data, card_itmes, total_amount):
                     "qty": item['quantity'],
                     "product_id": item['product_id']
                 })
-                
-        return True, "Захиалга амжилттай хадгалагдлаа."
+
+        return True, order_id
             
     except Exception as e:
-                # Хэрэв дээрх үйлдлүүдийн аль нэг дээр алдаа гарвал (жишээ нь тооллого хасаж чадахгүй бол)
-                # Систем автоматаар бүх зүйлийг цуцалж (Rollback), энд орж ирнэ.
-                return False, str(e)
+        logger.exception("save_order_complete алдаа: %s", e)
+        return False, str(e)

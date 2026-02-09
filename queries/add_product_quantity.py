@@ -1,7 +1,9 @@
-
-from connection.db import engine
+import logging
 from sqlalchemy import text
 
+from connection.db import engine
+
+logger = logging.getLogger(__name__)
 
 
 # Барааны тоо ширхэг нэмэх функц

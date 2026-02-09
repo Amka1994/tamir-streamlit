@@ -1,5 +1,5 @@
 import streamlit as st
-from sqlalchemy import text
+
 from queries.q_login import login_user
 
 def login_page():

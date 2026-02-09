@@ -1,6 +1,5 @@
 import streamlit as st
-from sqlalchemy import text
-from connection.db import engine
+
 from queries.q_users import add_user_to_db
 
 

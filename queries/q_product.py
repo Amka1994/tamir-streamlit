@@ -1,5 +1,9 @@
+import logging
 from connection.db import engine
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
+
 
 # Бараа нэмэх функц
 def insert_product(name, code, category, price):
@@ -21,18 +25,15 @@ def insert_product(name, code, category, price):
         return False, f"Алдаа гарлаа: {e}"
   
 # Бүх барааг авах функц
-def get_all_products():
+def get_all_products() -> list:
     try:
         with engine.connect() as conn:
-
-             query = text("SELECT id, name, code, quantity, category, price FROM products")
-             result = conn.execute(query)
-             return result
+            query = text("SELECT id, name, code, quantity, category, price FROM products")
+            result = conn.execute(query)
+            return result.fetchall()
     except Exception as e:
-        print(f"Алдаа гарлаа: {e}")
+        logger.exception("get_all_products алдаа: %s", e)
         return []
-    finally:
-        conn.close()
 
 
 #history-г авах функц
@@ -70,7 +71,7 @@ def get_product_history(product_id: int = None, limit: int = 100):
                 result = conn.execute(query, {"pid": product_id, "limit": limit})
             return result.fetchall()
     except Exception as e:
-        print(f"Алдаа гарлаа: {e}")
+        logger.exception("get_product_history алдаа: %s", e)
         return []
          
    
